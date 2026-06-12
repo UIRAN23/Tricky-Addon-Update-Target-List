@@ -1,6 +1,6 @@
 import { exec, spawn } from 'kernelsu-alt'
 import { File } from './file'
-import { MOD_ID, OMK_MOD_ID, TS_MOD_ID } from './constant'
+import { MOD_ID, OMK_MOD_ID, TS_MOD_ID, OMK_STATE_DIR } from './constant'
 
 export class Cli {
   static #basePathPromise: Promise<string> | null = null
@@ -213,5 +213,11 @@ export class Cli {
       })
       proc.on('error', () => resolve([]))
     })
+  }
+
+  async restartOmkDaemons(): Promise<void> {
+    await File.createFile(`${OMK_STATE_DIR}/restart.all`).catch(() => {})
+    const env = { PATH: "$PATH:/data/adb/ksu/bin:/data/adb/ap/bin:/data/adb/magisk" }
+    await exec(`resetprop persist.sys.omk.restart.all 1`, { env }).catch(() => {})
   }
 }

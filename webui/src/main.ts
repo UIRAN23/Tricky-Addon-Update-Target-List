@@ -122,6 +122,9 @@ async function saveTarget(): Promise<void> {
     await appList.save()
     await appList.refresh()
     snackbar.show(i18n.t('prompt_saved_target'))
+    if (config instanceof ConfigOhMyKeyMint) {
+      await cli.restartOmkDaemons()
+    }
   } catch (e) {
     snackbar.show(i18n.t('prompt_save_error'), false)
   }

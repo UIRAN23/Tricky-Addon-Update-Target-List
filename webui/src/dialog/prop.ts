@@ -3,6 +3,7 @@ import { i18n } from '../i18n'
 import { File } from '../file'
 import type { Cli } from '../cli'
 import { Config } from '../config'
+import { ConfigOhMyKeyMint } from '../config_ohmykeymint'
 import type { Snackbar } from '../snackbar/snackbar'
 import { applyDialogAnimation } from './animation'
 
@@ -76,6 +77,13 @@ export class PropDialog {
   }
 
   async show(): Promise<void> {
+    // Hide prop handler toggle for OMK (OMK manages props itself)
+    const isOmk = this.#config instanceof ConfigOhMyKeyMint
+    const propHandlerSwitch = this.#dialog?.querySelector<HTMLElement>('label.switch-item.contrast')
+    if (propHandlerSwitch) {
+      propHandlerSwitch.style.display = isOmk ? 'none' : ''
+    }
+
     const bootHashInput = this.#dialog?.querySelector<MdOutlinedTextField>('#boot-hash-input')
     if (bootHashInput) {
       try {
