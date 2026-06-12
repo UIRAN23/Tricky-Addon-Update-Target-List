@@ -7,6 +7,7 @@ import { Snackbar } from '../snackbar/snackbar'
 import { generateUnknownKeybox, isKeygenAvailable } from './unknown'
 import { CustomKeyboxProvider } from './custom'
 import { Config } from '../config'
+import { ConfigOhMyKeyMint } from '../config_ohmykeymint'
 import { applyDialogAnimation } from '../dialog/animation'
 import './keybox.scss'
 
@@ -84,10 +85,25 @@ export class Keybox {
   }
 
   async setKeybox(content: string, cmd: string = 'cat'): Promise<boolean> {
-    await File.move(this.keyboxPath, `${this.keyboxPath}.bak`).catch(() => {})
+    const kbxPath = this.keyboxPath
+    const isOmk = this.#config instanceof ConfigOhMyKeyMint
 
+    if (isOmk) {
+      // OMK: write via su for proper keystore ownership (1017:1017, 0600)
+      const tmpPath = `/data/local/tmp/keybox_${Date.now()}.xml`
+      try {
+        await File.write(tmpPath, content, cmd)
+        await this.cli.exec(`su -c "cp -f '${tmpPath}' '${kbxPath}' && chown 1017:1017 '${kbxPath}' && chmod 0600 '${kbxPath}' && rm -f '${tmpPath}'"`)
+        return true
+      } catch {
+        await this.cli.exec(`rm -f '${tmpPath}'`).catch(() => {})
+        return false
+      }
+    }
+
+    await File.move(kbxPath, `${kbxPath}.bak`).catch(() => {})
     try {
-      await File.write(this.keyboxPath, content, cmd)
+      await File.write(kbxPath, content, cmd)
       return true
     } catch {
       return false

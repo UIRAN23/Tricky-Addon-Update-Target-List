@@ -20,6 +20,10 @@ export class Cli {
     return exists ? `/data/adb/modules/.${MOD_ID}` : `/data/adb/modules/${MOD_ID}`
   }
 
+  async exec(cmd: string, opts?: { env?: Record<string, string> }): Promise<{ errno: number; stdout: string; stderr: string }> {
+    return exec(cmd, opts)
+  }
+
   async grepProp(key: string, filePath: string): Promise<string | null> {
     const result = await exec(`grep '^${key}=' '${filePath}' | cut -d'=' -f2`)
     return result.errno === 0 ? result.stdout.trim() : null
